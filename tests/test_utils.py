@@ -64,14 +64,25 @@ class TestUtils(unittest.TestCase):
         self.assertEqual([], hex_decode(''))
         self.assertEqual('0x55f3', hex(to_int(hex_decode('55f3'), base=256)))
 
+    def test_hex_encode_str(self):
+        self.assertEqual('54657374', hex_encode('Test'))
+        self.assertEqual('6c6f6e67657220737472696e67', hex_encode('longer string'))
+
     def test_encode_decode(self):
         self.assertEqual(r'12e45fa304e0', hex_encode(hex_decode(r'12e45fa304e0')))
         self.assertSequenceEqual((253, 16, 2, 99, 108, 225, 36, 98, 221, 12, 13, 8, 7, 10),
                                  hex_decode(hex_encode((253, 16, 2, 99, 108, 225, 36, 98, 221, 12,
                                                         13, 8, 7, 10))))
 
+    def test_encode_decode_str(self):
+        self.assertEqual('this is a test', hex_decode(hex_encode('this is a test'), as_ascii=True))
+
 
 class TestConstructs(unittest.TestCase):
     def test_xor(self):
+        """ Uses the property that ```a xor b xor a == b```
+        """
         self.assertEqual('0af3', xor('12c', xor('af3', '12c')))
+        self.assertEqual('0123456789abcdef9876', xor('443898afe9865432345',
+                                                 xor('443898afe9865432345', '123456789abcdef9876')))
 

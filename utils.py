@@ -17,8 +17,8 @@
 __author__ = 'marco'
 
 
-def hex_decode(hex_str):
-    """ Converts an hexadecimal string into a sequence of decimal integers.
+def hex_decode(hex_str, as_ascii=False):
+    """ Converts an hexadecimal string into a sequence of decimal integers, or the ASCII equivalent.
 
     It assumes the string to be encoded in hex (chars in pairs) and converts them into
     integers in the range [0..255].
@@ -28,22 +28,28 @@ def hex_decode(hex_str):
     :param hex_str: a sequence of chars in the [0..9a..f] range, padded with a leading
             0 if of odd length.
     :type hex_str: str
+    :param as_ascii: if this flag is ```True``` it will instead return the equivalent
+            ASCII-encoded string
+    :type as_ascii: bool
     :return: the hex decoded sequence of integers, least significant byte first (in other
             words, chars at position (0, 1) in ```hex_str``` will be hex decoded as the
-            int at position [0]
-    :rtype: list
+            int at position [0] - or its ASCII equivalent.
+    :rtype: list[int] or str
     :see: http://en.wikipedia.org/wiki/Hexadecimal
     """
     if len(filter(lambda x: not is_hex(x), hex_str)) > 0:
         raise ValueError('{} contains an invalid hex char'.format(hex_str))
     if len(hex_str) % 2 != 0:
         hex_str = '0{}'.format(hex_str)
-    return [int(''.join([hex_str[2 * i], hex_str[2 * i + 1]]), 16)
-            for i in range(0, len(hex_str) / 2)]
+    res = [int(''.join([hex_str[2 * i], hex_str[2 * i + 1]]), 16)
+           for i in range(0, len(hex_str) / 2)]
+    if as_ascii:
+        res = ''.join([chr(i) for i in res])
+    return res
 
 
 def hex_encode(int_seq):
-    """ Hexadecimal encoding of a sequence of integers in the [0..256) range
+    """ Hexadecimal encoding of a sequence of integers in the [0..256) range or a of ASCII string
 
         See also ```hex_decode()```
 
@@ -55,6 +61,8 @@ def hex_encode(int_seq):
         (hex_encode[0],[1])
     :raises ValueError: if any of the numbers in the sequence are outsite the [0..255] range
     """
+    if isinstance(int_seq, str):
+        int_seq = [ord(c) for c in int_seq]
     res = r''
     for num in int_seq:
         if not isinstance(num, int) or not 0 <= num < 256:
@@ -65,20 +73,20 @@ def hex_encode(int_seq):
 
 
 def to_int(seq, base=10):
-        """ Computes the positional representation of a list of integers, in the given base.
+    """ Computes the positional representation of a list of integers, in the given base.
 
-        :param seq: a sequence of integers, least significant digit last (in other words,
-                ordered from left to right, the same way we'd read the number::
+    :param seq: a sequence of integers, least significant digit last (in other words,
+            ordered from left to right, the same way we'd read the number::
 
-            to_int([3, 4, 5]) == 345
-        :type seq: list[int]
-        :param base: the base, by default 10
-        :type base: int
+        to_int([3, 4, 5]) == 345
+    :type seq: list[int]
+    :param base: the base, by default 10
+    :type base: int
 
-        :return: the integer value represented by the sequence of digits, in the given base
-        :rtype: int
-        """
-        return reduce(lambda sum, p: (0, base ** p[0] * p[1] + sum[1]), enumerate(reversed(seq)))[1]
+    :return: the integer value represented by the sequence of digits, in the given base
+    :rtype: int
+    """
+    return reduce(lambda sum, p: (0, base ** p[0] * p[1] + sum[1]), enumerate(reversed(seq)))[1]
 
 
 def chr2hex(c):
@@ -125,3 +133,7 @@ def xor(a, b):
     """
     xor_dec = map(lambda x: x[0] ^ x[1], zip(hex_decode(a), hex_decode(b)))
     return hex_encode(xor_dec)
+
+
+def random(size=16):
+    return open("/dev/urandom").read(size)

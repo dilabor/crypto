@@ -8,4 +8,10 @@ Cryptography Course
 
 A number or crypto utilities and problems solutions for the `Coursera Cryptography course`_
 
+Week 1
+======
+
+Programming problem solved!
+See ``week1.py``
+
 .. Coursera Cryptography course: https://class.coursera.org/crypto-011
