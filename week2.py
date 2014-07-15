@@ -14,37 +14,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from Crypto.Util import strxor
+
 __author__ = 'marco'
 
 # Week 2 - Problem Set
 
 
+def resolve_q2():
+    cost = 200
+    brute_speed = 10**9
+    spend = 4 * 10**12
+    num_cores = spend / cost
+    tot_speed = num_cores * brute_speed
+    print tot_speed, 'brute force ops / sec'
+    time_spent = 2**128 / tot_speed
+    years = (time_spent / 3600) / (24 * 365)
+    print('{years}BN years'.format(years=years / 10**9))
+
+
 def resolve_q4():
-    F2_OUT = {'1': ["4af532671351e2e1", "87a40cfa8dd39154"],
-              '2': ["7c2822ebfdc48bfb", "325032a9c5e2364b"],
-              '3': ["e86d2de2e1387ae9", "1792d21db645c008"],
-              '4': ["7b50baab07640c3d", "ac343a22cea46d60"]
-    }
-    for k in F2_OUT:
-        res = xor(F2_OUT[k][0], F2_OUT[k][1])
-        print "%s] %s" % (k, res)
+    lefties = {1: ("7b50baab", "ac343a22"),
+               2: ("2d1cfa42", "eea6e3dd"),
+               3: ("4af53267", "87a40cfa"),
+               4: ("9f970f4e", "6068f0b1")}
+    for k in lefties:
+        res = strxor.strxor(lefties[k][0].decode('hex'),
+                            lefties[k][1].decode('hex'))
+        print('{k}: {result}'.format(k=k, result=[ord(c) for c in res]))
 
 
 def resolve_q8():
     msgs = [
-        'The significance of this general conjecture, assuming its truth, is easy to see. '
-        'It means that it may be feasible to design ciphers that are effectively unbreakable.',
-        'If qualified opinions incline to believe in the exponential conjecture, then I think '
-        'we cannot afford not to make use of it.',
         'We see immediately that one needs little information to begin to break down the process.',
-        'In this letter I make some remarks on a general principle relevant to enciphering '
-        'in general and my machine.'
+        'The most direct computation would be for the enemy to try all 2^r possible keys, '
+        'one by one.',
+        'If qualified opinions incline to believe in the exponential conjecture, then I think we '
+        'cannot afford not to make use of it.',
+        'An enciphering-deciphering machine (in general outline) of my invention has been sent '
+        'to your organization.'
     ]
-    for m in msgs:
-        print '%d: %s' % (len(m), m)
+    print 'Estimated len:', 128 - 128/8
+    for i, msg in enumerate(msgs):
+        print('{i}: {len}'.format(len=len(msg), i=i+1))
+
 
 def main():
-    pass
+    print('Q2.')
+    resolve_q2()
+    print('===\nQ4.')
+    resolve_q4()
+    print('===\nQ8.')
+    resolve_q8()
 
 
 if __name__ == "__main__":
