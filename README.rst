@@ -20,6 +20,12 @@ Week 2
 Installation of PyCrypto
 ------------------------
 
+A viable alternative appears to be just using ``pip``[#]_::
+
+    $ pip install pycrypto
+
+failing that, follow below.
+
 Download the ``tar.gz`` file from the `PyCrypto download page`_ and untar somewhere
 on your hard drive::
 
@@ -80,6 +86,8 @@ Solved in ``week2-1.py``
 
 
 **Notes and Links**
+
+.. [#] Pip worked on Mac OSX (Mavericks, 10.9.4 - no XCode); the roundabout way worked on Linux Ubuntu 14.04
 
 .. _Coursera Cryptography course: https://class.coursera.org/crypto-011
 .. _PyCrypto download page: https://www.dlitz.net/software/pycrypto/
