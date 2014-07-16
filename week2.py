@@ -16,9 +16,8 @@
 
 __author__ = 'marco'
 
+
 # Week 2 - Problem Set
-
-
 def resolve_q4():
     F2_OUT = {'1': ["4af532671351e2e1", "87a40cfa8dd39154"],
               '2': ["7c2822ebfdc48bfb", "325032a9c5e2364b"],

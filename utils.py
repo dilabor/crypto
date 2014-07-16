@@ -16,6 +16,22 @@
 
 __author__ = 'marco'
 
+from Crypto.Util.strxor import strxor
+
+
+def xor(a, b):
+    """ Convenience method, truncates the XOR to the shortest of the two strings
+
+        ```Crypto.Util.strxor``` raises ```ValueError``` if the two strings are not of equal lenght: which is probably
+        correct, but tiresome: this method simply truncates the XOR to the shortest string
+
+    :return: the XOR of the two byte sequences, truncated to the shortest length string
+    :rtype: str
+    """
+    max_len = min(len(a), len(b))
+    return strxor(a[:max_len], b[:max_len])
+
+
 
 def to_dec_int(seq, base=10):
     """ Computes the decimal value of the positional representation of a list of integers, in the given base.

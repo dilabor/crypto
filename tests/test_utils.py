@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from Crypto.Util import strxor
 import unittest
 
-from utils import hex2chr, to_dec_int
+from utils import hex2chr, to_dec_int, xor
 
 __author__ = 'marco'
 
@@ -35,3 +34,11 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(0j, to_dec_int([]))
         self.assertEqual(16, to_dec_int([1, 0], base=16))
         self.assertEqual(10, to_dec_int([0xa], base=16))
+
+    def test_xor(self):
+        s1 = 'abc'
+        s2 = '9987'
+        s1_xor_s2 = xor(s1, s2)
+        self.assertEqual(3, len(s1_xor_s2))
+        self.assertEqual('X[[', s1_xor_s2)
+        self.assertEqual('foobar', xor('foobarandsomejunk', '\x00' * 6))

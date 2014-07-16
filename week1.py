@@ -22,12 +22,8 @@ Coursera.org:
 @author: Marco Massenzio (m.massenzio@gmail.com)
          Created on Jul 14, 2012
 """
-from Crypto.Util.strxor import strxor
 
-
-def xor(a, b):
-    max_len = min(len(a), len(b))
-    return strxor(a[:max_len], b[:max_len])
+from utils import xor
 
 
 # Week 1 - Problem set
