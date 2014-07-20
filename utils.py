@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright AlertAvert.com (c) 2013. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+""" Utilities for the Cryptography course
+
+    Leverages the pycrypto library classes and utilities wherever possible.
+"""
 __author__ = 'marco'
 
 from Crypto.Util.strxor import strxor
@@ -22,8 +24,8 @@ from Crypto.Util.strxor import strxor
 def xor(a, b):
     """ Convenience method, truncates the XOR to the shortest of the two strings
 
-        ```Crypto.Util.strxor``` raises ```ValueError``` if the two strings are not of equal lenght: which is probably
-        correct, but tiresome: this method simply truncates the XOR to the shortest string
+        ```Crypto.Util.strxor``` raises ```ValueError``` if the two strings are not of equal length: which is probably
+        correct, but tiresome: this method simply truncates the XOR to the shortest string.
 
     :return: the XOR of the two byte sequences, truncated to the shortest length string
     :rtype: str
@@ -40,11 +42,11 @@ def to_dec_int(seq, base=10):
             ordered from left to right, the same way we'd read the number::
 
                 to_dec_int([3, 4, 5]) == 345
-                to_dec_int([0xa, 5, 0xf], base=16) == 2655
+                to_dec_int([0xa, 5, 0xf], base=16) == 0xa5f (2655)
 
-    Please note there is no consistency or error checking: this method assumes that the caller
+    Please note there is virtually no error checking: this method assumes that the caller
     is taking care of providing a sensible sequence, with one digit per position (in whatever
-    ```base``` may be): you will get unexpected results calling it with stuff like this::
+    ```base``` may be): this will yield unexpected results when invoked with stuff like this::
 
                 # DON'T DO THIS
                 to_dec_int([10, 0xf], base=16)
@@ -73,7 +75,7 @@ def hex2chr(h):
 
 
 def is_hex(c):
-    """ Validates the single char ```c``` as a vailid hex digit [0..9a..f]
+    """ Validates the single char ```c``` as a valid hex digit [0..9a..f]
 
     :param c: a single char
     :return: ```True``` if ```c``` is a valid hex digit

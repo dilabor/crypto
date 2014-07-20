@@ -16,17 +16,19 @@
 
 __author__ = 'marco'
 
+from utils import xor
+
 
 # Week 2 - Problem Set
 def resolve_q4():
-    F2_OUT = {'1': ["4af532671351e2e1", "87a40cfa8dd39154"],
-              '2': ["7c2822ebfdc48bfb", "325032a9c5e2364b"],
-              '3': ["e86d2de2e1387ae9", "1792d21db645c008"],
-              '4': ["7b50baab07640c3d", "ac343a22cea46d60"]
+    f2_out = {1: ["4af532671351e2e1", "87a40cfa8dd39154"],
+              2: ["7c2822ebfdc48bfb", "325032a9c5e2364b"],
+              3: ["e86d2de2e1387ae9", "1792d21db645c008"],
+              4: ["7b50baab07640c3d", "ac343a22cea46d60"]
     }
-    for k in F2_OUT:
-        res = xor(F2_OUT[k][0], F2_OUT[k][1])
-        print "%s] %s" % (k, res)
+    for k in range(1, 5):
+        res = xor(f2_out[k][0].decode('hex'), f2_out[k][1].decode('hex'))
+        print(r"{k}. {xor}".format(k=k, xor=res.encode('hex')))
 
 
 def resolve_q8():
@@ -42,8 +44,12 @@ def resolve_q8():
     for m in msgs:
         print '%d: %s' % (len(m), m)
 
+
 def main():
-    pass
+    print("===\nQ4.\n")
+    resolve_q4()
+    print("===\nQ8.\n")
+    resolve_q8()
 
 
 if __name__ == "__main__":
