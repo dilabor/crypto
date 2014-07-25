@@ -23,9 +23,11 @@ __author__ = 'marco'
     block to the preceding block, going from last block to first, until reaching block B1
     and emitting the H0 hash as the output.
 
-    See the full description of the problem here:
+    See the full description of the problem here_.
 
-    TODO: add URL
+    .. _here: TODO: Add URL
+
+    The expected result is: ```5b96aece304a1422224f9a41b228416028f9ba26b0d1058f400200f06a589949```
 """
 
 from Crypto.Hash import SHA256
@@ -44,13 +46,13 @@ def hash_(block, prev_block_hash):
 
 def hash_video(fname):
     with open(fname, 'rb') as video:
+        blocks = []
         bv = video.read(BLOCK_SIZE)
-        blocks = [bv]
         while bv:
+            blocks.append(bv)
             bv = video.read(BLOCK_SIZE)
-            if bv:
-                blocks.insert(0, bv)
     # At this point the video blocks are in reversed order, the first block possibly shorter than BLOCK_SIZE
+    blocks.reverse()
     # Note that, to complete the assignment, all we need is to compute H0, so we can throw the blocks away once
     # the hash has been computed and appended to the next block
     hh = ''
@@ -69,6 +71,7 @@ def main():
     conf = parse()
     full_hash = hash_video(conf.file)
     print full_hash.encode('hex')
+
 
 if __name__ == '__main__':
     main()
