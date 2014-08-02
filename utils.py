@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright AlertAvert.com (c) 2013. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,71 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+""" Utilities for the Cryptography course
+
+    Leverages the pycrypto library classes and utilities wherever possible.
+"""
 __author__ = 'marco'
 
+from Crypto.Util.strxor import strxor
 
-def hex_decode(hex_str, as_ascii=False):
-    """ Converts an hexadecimal string into a sequence of decimal integers, or the ASCII equivalent.
 
-    It assumes the string to be encoded in hex (chars in pairs) and converts them into
-    integers in the range [0..255].
+def xor(a, b):
+    """ Convenience method, truncates the XOR to the shortest of the two strings
 
-    For example, the string ```a4e3``` would be converted into ```[164, 227]```.
+        ```Crypto.Util.strxor``` raises ```ValueError``` if the two strings are not of equal length: which is probably
+        correct, but tiresome: this method simply truncates the XOR to the shortest string.
 
-    :param hex_str: a sequence of chars in the [0..9a..f] range, padded with a leading
-            0 if of odd length.
-    :type hex_str: str
-    :param as_ascii: if this flag is ```True``` it will instead return the equivalent
-            ASCII-encoded string
-    :type as_ascii: bool
-    :return: the hex decoded sequence of integers, least significant byte first (in other
-            words, chars at position (0, 1) in ```hex_str``` will be hex decoded as the
-            int at position [0] - or its ASCII equivalent.
-    :rtype: list[int] or str
-    :see: http://en.wikipedia.org/wiki/Hexadecimal
+    :return: the XOR of the two byte sequences, truncated to the shortest length string
+    :rtype: str
     """
-    if len(filter(lambda x: not is_hex(x), hex_str)) > 0:
-        raise ValueError('{} contains an invalid hex char'.format(hex_str))
-    if len(hex_str) % 2 != 0:
-        hex_str = '0{}'.format(hex_str)
-    res = [int(''.join([hex_str[2 * i], hex_str[2 * i + 1]]), 16)
-           for i in range(0, len(hex_str) / 2)]
-    if as_ascii:
-        res = ''.join([chr(i) for i in res])
-    return res
+    max_len = min(len(a), len(b))
+    return strxor(a[:max_len], b[:max_len])
 
 
-def hex_encode(int_seq):
-    """ Hexadecimal encoding of a sequence of integers in the [0..256) range or a of ASCII string
 
-        See also ```hex_decode()```
-
-    :param int_seq: a sequence of integers in the 0..255 range
-    :return: a string made up of hex chars which, in pairs, represent the hex encoding of the
-        sequence of integers; for example, (243, 3, 99) will be encode as ```r'f30363'```
-        Integer values less than ```0xF``` will be padded with a leading `0` char; the order is
-        maintained: the lowest order byte (int_seq[0]) will be encode as the first pair of chars
-        (hex_encode[0],[1])
-    :raises ValueError: if any of the numbers in the sequence are outsite the [0..255] range
-    """
-    if isinstance(int_seq, str):
-        int_seq = [ord(c) for c in int_seq]
-    res = r''
-    for num in int_seq:
-        if not isinstance(num, int) or not 0 <= num < 256:
-            raise ValueError('{} should be an int in the [0..255] range'.format(num))
-        q, r = divmod(num, 16)
-        res = r''.join([res, hex2chr(q), hex2chr(r)])
-    return res
-
-
-def to_int(seq, base=10):
-    """ Computes the positional representation of a list of integers, in the given base.
+def to_dec_int(seq, base=10):
+    """ Computes the decimal value of the positional representation of a list of integers, in the given base.
 
     :param seq: a sequence of integers, least significant digit last (in other words,
             ordered from left to right, the same way we'd read the number::
 
-        to_int([3, 4, 5]) == 345
+                to_dec_int([3, 4, 5]) == 345
+                to_dec_int([0xa, 5, 0xf], base=16) == 0xa5f (2655)
+
+    Please note there is virtually no error checking: this method assumes that the caller
+    is taking care of providing a sensible sequence, with one digit per position (in whatever
+    ```base``` may be): this will yield unexpected results when invoked with stuff like this::
+
+                # DON'T DO THIS
+                to_dec_int([10, 0xf], base=16)
+                to_dec_int([9, 8], base=8)
+
     :type seq: list[int]
     :param base: the base, by default 10
     :type base: int
@@ -86,25 +59,14 @@ def to_int(seq, base=10):
     :return: the integer value represented by the sequence of digits, in the given base
     :rtype: int
     """
+    if not seq:
+        return 0
     return reduce(lambda sum, p: (0, base ** p[0] * p[1] + sum[1]), enumerate(reversed(seq)))[1]
 
 
-def chr2hex(c):
-    """Returns the decimal value of the char c representing an hex value (0..9 a..f)"""
-    assert len(c) == 1, '{} should be a single hex char'.format(c)
-    c = c.lower()
-    if not is_hex(c):
-        raise ValueError('{} not a valid hex char'.format(c))
-    if 47 < ord(c) < 58:
-        n = ord(c) - ord('0')
-    else:
-        n = ord(c) - ord('a') + 10
-    return n
-
-
 def hex2chr(h):
-    """Returns the char representation of the hex value [0..16)"""
-    if not is_hex(h):
+    """Returns the char representation of the int value [0..16)"""
+    if h not in range(0, 16):
         raise ValueError('{} not a valid hex value'.format(h))
     if h < 10:
         return chr(h + ord('0'))
@@ -113,27 +75,23 @@ def hex2chr(h):
 
 
 def is_hex(c):
-    if type(c) == str:
-        return c.lower() in '0123456789abcdef'
-    elif type(c) == int:
-        return 0 <= c < 16
-    else:
-        return False
+    """ Validates the single char ```c``` as a valid hex digit [0..9a..f]
 
-
-def xor(a, b):
-    """ Given two hex-encoded sequences, will compute the elementwise XOR of each byte.
-
-    :param a: the first sequence to XOR, hex-encoded
-    :type a: str
-    :param b: the second sequence to XOR, hex-encoded
-    :type b: str
-    :return: the hex-encoded string resulting from the byte-wise XOR-ing of ```a``` and ```b```
-    :rtype: str
+    :param c: a single char
+    :return: ```True``` if ```c``` is a valid hex digit
+    :rtype: bool
     """
-    xor_dec = map(lambda x: x[0] ^ x[1], zip(hex_decode(a), hex_decode(b)))
-    return hex_encode(xor_dec)
+    if isinstance(c, str) and len(c) == 1:
+        return c.lower() in '0123456789abcdef'
+    else:
+        raise ValueError("Must be a single char")
 
 
 def random(size=16):
+    """ Creates a string of random bytes - **not** cryptographically strong
+
+    :param size: the length, in bytes, of the returned string of random hex digits
+    :return: a ```size``` bytes long string
+    :rtype: str
+    """
     return open("/dev/urandom").read(size)

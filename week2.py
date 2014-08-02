@@ -18,9 +18,10 @@ from Crypto.Util import strxor
 
 __author__ = 'marco'
 
+from utils import xor
+
+
 # Week 2 - Problem Set
-
-
 def resolve_q2():
     cost = 200
     brute_speed = 10**9
@@ -57,6 +58,7 @@ def resolve_q8():
     print 'Estimated len:', 128 - 128/8
     for i, msg in enumerate(msgs):
         print('{i}: {len}'.format(len=len(msg), i=i+1))
+
 
 
 def main():
