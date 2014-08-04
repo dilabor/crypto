@@ -51,7 +51,7 @@ def hash_video(fname):
         while bv:
             blocks.append(bv)
             bv = video.read(BLOCK_SIZE)
-    # At this point the video blocks are in reversed order, the first block possibly shorter than BLOCK_SIZE
+    # At this point we need the video blocks in reversed order, the first block possibly shorter than BLOCK_SIZE
     blocks.reverse()
     # Note that, to complete the assignment, all we need is to compute H0, so we can throw the blocks away once
     # the hash has been computed and appended to the next block

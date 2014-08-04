@@ -8,6 +8,7 @@ import unittest
 # Unit under test
 import hash_blocks
 
+
 class TestHashes(unittest.TestCase):
 
     FILE_PATH = os.path.join(os.path.dirname(__file__), 'data', 'test.mp4')
