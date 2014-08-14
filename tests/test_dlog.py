@@ -33,6 +33,5 @@ class TestDiscreteLog(unittest.TestCase):
         h = gmpy2.powmod(g, x, p)
         test_dlog = DLog(p, g, h, num_bits)
         result = test_dlog.compute()
-        print result
         self.assertEqual(x, result)
 

@@ -16,7 +16,7 @@ __author__ = 'marco'
 
 
 import gmpy2
-import time
+import datetime
 
 p = gmpy2.mpz('134078079299425970995740249982058461274793658205923933'
               '77723561443721764030073546976801874298166903427690031'
@@ -35,6 +35,8 @@ class DLog(object):
 
     NUM_BITS = 20
     B = pow(2, NUM_BITS)
+    CHECKPOINT = 4096
+    MIN_CK_SEC = 5
 
     def __init__(self, p, g, h, num_bits=NUM_BITS):
         self.p = p
@@ -43,6 +45,7 @@ class DLog(object):
         self.B = pow(2, num_bits)
         self.g_B = gmpy2.powmod(g, self.B, p)
         self.lookup_table = {}
+        self.last_ck = datetime.datetime.now()
 
     def compute(self):
         self.build_table(end=self.B)
@@ -52,8 +55,8 @@ class DLog(object):
             if x1:
                 res = gmpy2.f_mod(gmpy2.add(gmpy2.mul(x0, self.B), x1), self.p)
                 return res
-            if x0 and (x0 % 1024) == 0:
-                print_progress(x0)
+            if x0 and (x0 % self.CHECKPOINT) == 0:
+                self.print_progress(x0)
             rhs = gmpy2.f_mod(gmpy2.mul(rhs, self.g_B), self.p)
 
     def calc_right_side(self, x0):
@@ -64,14 +67,16 @@ class DLog(object):
         for x1 in xrange(start, end):
             lhs = gmpy2.divm(self.h, g_x1, self.p)
             self.lookup_table[lhs] = x1
-            if (x1 % 1024) == 0:
-                print_progress(x1)
+            if (x1 % self.CHECKPOINT) == 0:
+                self.print_progress(x1)
             g_x1 = gmpy2.f_mod(gmpy2.mul(g_x1, self.g), self.p)
 
-
-def print_progress(num):
-    z = time.localtime()
-    print "{}:{}:{} -- {}".format(z.tm_hour, z.tm_min, z.tm_sec, num)
+    def print_progress(self, num):
+        z = datetime.datetime.now()
+        delta = z - self.last_ck
+        if delta.total_seconds() > self.MIN_CK_SEC:
+            print "{} -- Progress: {}".format(z.__format__("%H:%M:%S"), num)
+            self.last_ck = z
 
 
 def main():
