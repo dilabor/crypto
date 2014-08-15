@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import utils
 
 __author__ = 'marco'
 
@@ -36,7 +37,6 @@ class DLog(object):
     NUM_BITS = 20
     B = pow(2, NUM_BITS)
     CHECKPOINT = 4096
-    MIN_CK_SEC = 5
 
     def __init__(self, p, g, h, num_bits=NUM_BITS):
         self.p = p
@@ -45,7 +45,7 @@ class DLog(object):
         self.B = pow(2, num_bits)
         self.g_B = gmpy2.powmod(g, self.B, p)
         self.lookup_table = {}
-        self.last_ck = datetime.datetime.now()
+        self.log = utils.ProgressReporter()
 
     def compute(self):
         self.build_table(end=self.B)
@@ -56,7 +56,7 @@ class DLog(object):
                 res = gmpy2.f_mod(gmpy2.add(gmpy2.mul(x0, self.B), x1), self.p)
                 return res
             if x0 and (x0 % self.CHECKPOINT) == 0:
-                self.print_progress(x0)
+                self.log.print_progress(x0)
             rhs = gmpy2.f_mod(gmpy2.mul(rhs, self.g_B), self.p)
 
     def calc_right_side(self, x0):
@@ -68,15 +68,8 @@ class DLog(object):
             lhs = gmpy2.divm(self.h, g_x1, self.p)
             self.lookup_table[lhs] = x1
             if (x1 % self.CHECKPOINT) == 0:
-                self.print_progress(x1)
+                self.log.print_progress(x1)
             g_x1 = gmpy2.f_mod(gmpy2.mul(g_x1, self.g), self.p)
-
-    def print_progress(self, num):
-        z = datetime.datetime.now()
-        delta = z - self.last_ck
-        if delta.total_seconds() > self.MIN_CK_SEC:
-            print "{} -- Progress: {}".format(z.__format__("%H:%M:%S"), num)
-            self.last_ck = z
 
 
 def main():

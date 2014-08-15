@@ -16,6 +16,8 @@
 
     Leverages the pycrypto library classes and utilities wherever possible.
 """
+import datetime
+
 __author__ = 'marco'
 
 from Crypto.Util.strxor import strxor
@@ -95,3 +97,18 @@ def random(size=16):
     :rtype: str
     """
     return open("/dev/urandom").read(size)
+
+
+class ProgressReporter(object):
+
+    MIN_CK_SEC = 5
+
+    def __init__(self):
+        self.last_ck = datetime.datetime.now()
+
+    def print_progress(self, num):
+        z = datetime.datetime.now()
+        delta = z - self.last_ck
+        if delta.total_seconds() > self.MIN_CK_SEC:
+            print "{} -- Progress: {}".format(z.__format__("%H:%M:%S"), num)
+            self.last_ck = z
