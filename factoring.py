@@ -32,28 +32,52 @@ class Factoring(object):
         self.n = n
         self.log = utils.ProgressReporter()
 
+    def _check_sol(self, p, q):
+        return sub(self.n, mul(p, q)) < 0.5
+
     def calc_near(self):
         a = ceil(sqrt(self.n))
         p, q = self._calc_factors(a)
-        assert sub(self.n, mul(p, q)) < 0.5
+        assert self._check_sol(p, q)
         return p, q
 
     def calc_brute_force(self):
         a = ceil(sqrt(self.n))
         for n in xrange(1, 2 ** 20):
             p, q = self._calc_factors(add(a, n))
-            if sub(self.n, mul(p, q)) < 0.5:
+            if self._check_sol(p, q):
                 return p, q
             self.log.print_progress(n)
         else:
             raise ValueError("Cannot factor {}".format(self.n))
 
+    @staticmethod
+    def solve_quadratic(a, b, c):
+        """ Solves the quadratic equation ```a x2 + b x + c = 0```
+
+        :return: the GMP result of solving the quadratic equation usign multi-precision numbers
+        """
+        bb = sqrt(sub(mul(b, b), mul(mpz(4), mul(a, c))))
+        x1 = gmpy2.div(sub(-b, bb), mul(mpz(2), a))
+        x2 = gmpy2.div(add(-b, bb), mul(mpz(2), a))
+        return x1, x2
+
     def calc_near6(self):
-        a = ceil(sqrt(mul(6, self.n)))
-        x = sqrt(sub(mul(a, a), self.n))
-        p = floor(sub(a, x))
-        q = floor(add(a, x))
-        return mpz(p), mpz(q)
+        def q(p):
+            # q = (2A - 3p) / 2
+            return mpz(gmpy2.div(sub(mul(mpz(2), A), mul(mpz(3), p)), mpz(2)))
+        A = ceil(sqrt(mul(6, self.n)))
+        # p is the solution of the quadratic equation: 3/2 p^2 - Ap + N = 0
+        # this is solved using the classic (-b +/- sqrt(b^2 - 4ac)/2a)
+        a = gmpy2.div(gmpy2.mpfr(3), mpz(2))
+        b = -A
+        c = self.n
+        p1, p2 = self.solve_quadratic(a, b, c)
+        if self._check_sol(p1, q(p1)):
+            return p1, q(p1)
+        elif self._check_sol(p2, q(p2)):
+            return p2, q(p2)
+        raise ValueError("Cannot factor {}".format(self.n))
 
     def _calc_factors(self, a):
         x = sqrt(sub(mul(a, a), self.n))
@@ -102,7 +126,7 @@ def solve_q2():
 def solve_q3():
     num = mpz(N3)
     factor = Factoring(num)
-    p, q = factor.calc_near6(mult=6)
+    p, q = factor.calc_near6()
     print "Q3: The result is:\np = {},\nq = {}".format(p, q)
 
 
