@@ -18,7 +18,8 @@ import utils
 __author__ = 'marco'
 
 import gmpy2
-from gmpy2 import mpz, ceil, sqrt, add, sub, mul, floor
+from gmpy2 import (add, ceil, div, isqrt,
+                   mpz, mul, sqrt, sub)
 
 
 class Factoring(object):
@@ -33,12 +34,15 @@ class Factoring(object):
         self.log = utils.ProgressReporter()
 
     def _check_sol(self, p, q):
-        return sub(self.n, mul(p, q)) < 0.5
+        if gmpy2.is_prime(p) and gmpy2.is_prime(q):
+            return sub(self.n, mul(p, q)) < 0.5
+        return False
 
     def calc_near(self):
         a = ceil(sqrt(self.n))
         p, q = self._calc_factors(a)
         assert self._check_sol(p, q)
+        assert gmpy2.is_prime(p)
         return p, q
 
     def calc_brute_force(self):
@@ -63,26 +67,41 @@ class Factoring(object):
         return x1, x2
 
     def calc_near6(self):
-        def q(p):
-            # q = (2A - 3p) / 2
-            return mpz(gmpy2.div(sub(mul(mpz(2), A), mul(mpz(3), p)), mpz(2)))
-        A = ceil(sqrt(mul(6, self.n)))
-        # p is the solution of the quadratic equation: 3/2 p^2 - Ap + N = 0
-        # this is solved using the classic (-b +/- sqrt(b^2 - 4ac)/2a)
-        a = gmpy2.div(gmpy2.mpfr(3), mpz(2))
-        b = -A
-        c = self.n
-        p1, p2 = self.solve_quadratic(a, b, c)
-        if self._check_sol(p1, q(p1)):
-            return p1, q(p1)
-        elif self._check_sol(p2, q(p2)):
-            return p2, q(p2)
-        raise ValueError("Cannot factor {}".format(self.n))
+        """ Solves the Extra Credit question Q3
+
+        See:
+
+        Uses only integer arithmetic to avoid issues with rounding errors
+
+        Solution credit to Francois Degros:
+        https://class.coursera.org/crypto-011/forum/thread?thread_id=517#post-2279
+
+        :return: the prime factors of ```self.n```, p and q
+        :rtype: tuple
+        """
+        # A = ceil(sqrt(24 N))  - the use of isqrt() won't matter, as we seek the ceil
+        A = add(isqrt(mul(self.n, mpz(24))), mpz(1))
+        # D = A^2 - 24 N
+        D = sub(mul(A, A), mul(24, self.n))
+        # E = sqrt(D)  - note D is a perfect square and we can use integer arithmetic
+        E = isqrt(D)
+        assert sub(mul(E, E), D) == mpz(0)
+        p = div(sub(A, E), 6)
+        q = div(add(A, E), 4)
+        if self._check_sol(p, q):
+            return p, q
+        # The above is the right solution, however, there is another possible solution:
+        p = div(add(A, E), 6)
+        q = div(sub(A, E), 4)
+        if self._check_sol(p, q):
+            return p, q
+        print 'Could not find a solution'
+        return 0, 0
 
     def _calc_factors(self, a):
         x = sqrt(sub(mul(a, a), self.n))
-        p = floor(sub(a, x))
-        q = floor(add(a, x))
+        p = sub(a, x)
+        q = add(a, x)
         return mpz(p), mpz(q)
 
 
@@ -108,36 +127,62 @@ N3 = '72006226374735042527956443552558373833808445147399984182665305798191' \
      '52463970788523879939683923036467667022162701835329944324119217381272' \
      '9276147530748597302192751375739387929'
 
+CIPHER = '2209645186741038177630656113488341801741006978789283107173183914' \
+         '3676135600120538004282329650473509424343946219751512256465839967' \
+         '9428894607645420405815647489880137348641204523252293201764879166' \
+         '6640299750918872997169052608322206777160001932926087000957999372' \
+         '4077458967773697817571267229951148662959627934791540'
+
 
 def solve_q1():
-    num = gmpy2.mpz(N1)
-    factor = Factoring(num)
-    p, q = factor.calc_near()
-    print "Q1: The result is:\np = {},\nq = {}".format(p, q)
+    factor = Factoring(mpz(N1))
+    print_pq(*factor.calc_near())
 
 
 def solve_q2():
-    num = mpz(N2)
-    factor = Factoring(num)
-    p, q = factor.calc_brute_force()
-    print "Q2: The result is:\np = {},\nq = {}".format(p, q)
+    factor = Factoring(mpz(N2))
+    print_pq(*factor.calc_brute_force())
 
 
 def solve_q3():
-    num = mpz(N3)
-    factor = Factoring(num)
-    p, q = factor.calc_near6()
-    print "Q3: The result is:\np = {},\nq = {}".format(p, q)
+    factor = Factoring(mpz(N3))
+    print_pq(*factor.calc_near6())
+
+
+def decrypt():
+    n = mpz(N1)
+    p, q = Factoring(n).calc_near()
+    fi_n = mul(sub(p, 1), sub(q, 1))
+    e = mpz(65537)
+    d = gmpy2.invert(e, fi_n)
+    dec = gmpy2.powmod(mpz(CIPHER), d, n)
+    dec_hex = hex(dec)
+    if dec_hex.startswith('0x2'):
+        msg_starts = dec_hex.index('00') + 2
+        msg_hex = dec_hex[msg_starts:]
+        return msg_hex.decode('hex')
+    print 'Decryption failed'
+
+
+def print_pq(p, q):
+    print "The result is:\np = {},\nq = {}\n".format(p, q)
 
 
 def main():
-    num_digits = len(N1)
-    print "The required precision is {}".format(2 * num_digits)
     # Configure precision to deal with large integers
-    gmpy2.get_context().precision = 2 * num_digits
+    # The right factor(3) must be found by trial and error; turns out that to solve these
+    # problems a precision of around 900 digits is necessary
+    num_digits = len(N1)
+    precision = 3 * num_digits
+    print "The required precision is {} digits".format(precision)
+    gmpy2.get_context().precision = precision
+    print "Q1)"
     solve_q1()
+    print "Q2)"
     solve_q2()
+    print "Q3)"
     solve_q3()
+    print "Decrpyt:", decrypt()
 
 if __name__ == "__main__":
     main()
